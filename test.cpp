@@ -21,7 +21,11 @@ int main(int argc, char *argv[])
   
   var lmno = "dfg";
   
+	cout << "Test: " << lmno << endl;
+	
   lmno += "hjkl";
+  
+	cout << "Test: " << lmno << endl;
   
   // var myVal = (Object){{"fee", 4}, {"foe", 5}};
   

@@ -1,8 +1,10 @@
 class var {
-  
+
   public:
 
   ValueType type;
+  
+  TypeAdapter *adapter;
   
   boolean booleanValue;
   
@@ -14,74 +16,6 @@ class var {
   
   Array arrayValue;
   
-  long length;
-  
-  // string builders
-  
-  string numberToString(number value) {
-    ostringstream ss;
-    if (!(ss << value))
-      return "NaN";
-    return ss.str();
-  }
-  
-  string arrayToString(Array value) {
-  
-    ostringstream ss;
-    
-    long size = value.size();
-    
-    ss << "[";
-      
-    for (Array::iterator it = value.begin(); it != value.end(); ++it) {
-    
-      cstring item = *it;
-    
-      if (it != value.begin())
-        ss << ", ";
-    
-      if (it->isString()) {
-      
-        ss << "\"" << item << "\"";
-      
-      }
-      
-      else {
-      
-        ss << item;
-      
-      }
-    
-    } 
-    
-    ss << "]";
-    
-    return ss.str();
-  
-  }
-  
-  string objectToString(Object value) {
-  
-    ostringstream ss;
-    
-    ss << "{";
-
-    // show content:
-    
-    for (Object::iterator it = value.begin(); it != value.end(); ++it) {
-    
-      if (it != value.begin())
-        ss << ", ";
-        
-      ss << "\"" << it->first << "\":" << (cstring)(it->second);
-    }
-    
-    
-    ss << "}";
-    
-    return ss.str();
-  
-  }
   
   // initializers
   
@@ -90,19 +24,16 @@ class var {
   
     type = TYPE_BOOLEAN;
     booleanValue = value;
-    numberValue = value ? 1 : 0;
-    stringValue = value ? "true" : "false";
-    length = 0;
+    adapter = new BooleanAdapter();
     
   }
   
   void setFromNumber(number value) {
   
     type = TYPE_NUMBER;
-    booleanValue = value == 0 ? true : false;
     numberValue = value;
-    stringValue = numberToString(value);
-    length = 0;
+    // delete adapter;
+    adapter = new NumberAdapter();
     
   }
   
@@ -110,12 +41,7 @@ class var {
   
     type = TYPE_STRING;
     stringValue = value;
-    
-    istringstream in(value);
-    in >> numberValue;
-    
-    booleanValue = numberValue == 0 ? true : false;
-    length = stringValue.length();
+    adapter = new StringAdapter();
     
   }
   
@@ -123,11 +49,7 @@ class var {
   
     type = TYPE_OBJECT;
     objectValue = value;
-    arrayValue.clear();
-    booleanValue = true;
-    numberValue = 1.0;
-    length = 0;
-    stringValue = objectToString(value);
+    adapter = new ObjectAdapter();
     
   }
   
@@ -135,16 +57,14 @@ class var {
   
     type = TYPE_ARRAY;
     arrayValue = value;
-    objectValue.clear();
-    booleanValue = true;
-    numberValue = 1.0;
-    length = value.size();
-    stringValue = arrayToString(value);
+    adapter = new ArrayAdapter();
     
   }
   
-  string toString() {
-    return stringValue;
+  cstring toString() const {
+  
+    return adapter->toString(*this);
+  
   }
   
   // cast to other types
@@ -154,11 +74,11 @@ class var {
   }
   
   operator string() const { 
-    return stringValue;
+    return toString();
   }
   
   operator cstring() const { 
-    return stringValue.c_str();
+    return toString();
   }
   
   operator Object() const { 
@@ -172,7 +92,7 @@ class var {
   // operators
   
   var operator += (const var &rhs) {
-    if (type == TYPE_NUMBER)
+    if (isNumber())
       setFromNumber(numberValue + rhs.numberValue);
     else
       setFromString(stringValue + rhs.stringValue);
@@ -209,16 +129,11 @@ class var {
   var() {
   
     type = TYPE_UNDEFINED;
-    booleanValue = false;
-    numberValue = 0;
     stringValue = "undefined";
-    length = 0;
   
   }
   
   var(bool value) {
-  
-    cout << "bool: " << value << endl;
   
     setFromBoolean(value);
   
@@ -226,15 +141,11 @@ class var {
   
   var(long double value) {
   
-    cout << "long double: " << value << endl;
-  
     setFromNumber(value);
   
   }
   
   var(double value) {
-  
-    cout << "double: " << value << endl;
   
     setFromNumber(value);
   
@@ -242,15 +153,11 @@ class var {
   
   var(long value) {
   
-    cout << "long: " << value << endl;
-  
     setFromNumber(value);
   
   }
   
   var(int value) {
-  
-    cout << "int: " << value << endl;
   
     setFromNumber(value);
   
@@ -258,39 +165,29 @@ class var {
   
   var(unsigned value) {
   
-    cout << "unsigned: " << value << endl;
-  
     setFromNumber(value);
   
   }
   
   var(unsigned long value) {
   
-    cout << "unsigned long: " << value << endl;
-  
     setFromNumber(value);
   
   }
   
   var(cstring value) {
-  
-    cout << "cstring: " << value << endl;
     
     setFromString(value);
   
   }
   
   var(Object value) {
-  
-    cout << "Object" << endl;
     
     setFromObject(value);
   
   }
   
   var(Array value) {
-  
-    cout << "Array" << endl;
     
     setFromArray(value);
   
@@ -305,7 +202,7 @@ class var {
   }
   
   
-  // type checks
+  // type checks (for convenience)
   
   bool isNull() {
   
@@ -339,4 +236,3 @@ class var {
   }
 
 };
-
