@@ -1,4 +1,4 @@
-// default exports, overridden
+// defaults
 
 boolean TypeAdapter::toBoolean(var value) {
   return value.booleanValue;
@@ -34,9 +34,11 @@ cstring const BooleanAdapter::toString(var value) {
 boolean NumberAdapter::toBoolean(var value) {
   return value.numberValue == 0 ? false : true;
 }
+
 cstring const NumberAdapter::toString(var value) {
   ostringstream ss;
-  return ss << value.numberValue ? ss.str().c_str() : "NaN";
+  value.stringValue = ss << value.numberValue ? ss.str() : "NaN";
+  return value.stringValue.c_str();
 }
 
 // string adapter
@@ -44,6 +46,7 @@ cstring const NumberAdapter::toString(var value) {
 boolean StringAdapter::toBoolean(var value) {
   return value.stringValue == "" ? false : true;
 }
+
 number StringAdapter::toNumber(var value) {
   number n;  
   istringstream ss(value.stringValue);
@@ -56,16 +59,16 @@ number StringAdapter::toNumber(var value) {
 number ObjectAdapter::toNumber(var value) {
   return 0;
 }
+
 boolean ObjectAdapter::toBoolean(var value) {
   return true;
 }
+
 cstring const ObjectAdapter::toString(var value) {
 
     ostringstream ss;
     
     ss << "{";
-
-    // show content:
     
     for (Object::iterator it = value.objectValue.begin(); it != value.objectValue.end(); ++it) {
     
@@ -78,7 +81,9 @@ cstring const ObjectAdapter::toString(var value) {
     
     ss << "}";
     
-    return ss.str().c_str();
+    value.stringValue = ss.str();
+    
+    return value.stringValue.c_str();
 
 }
 
@@ -88,14 +93,14 @@ cstring const ObjectAdapter::toString(var value) {
 number ArrayAdapter::toNumber(var value) {
   return StringAdapter().toNumber(value.arrayValue);
 }
+
 boolean ArrayAdapter::toBoolean(var value) {
   return true;
 }
+
 cstring const ArrayAdapter::toString(var value) {
 
     ostringstream ss;
-    
-    long size = value.arrayValue.size();
     
     ss << "[";
       
@@ -122,6 +127,8 @@ cstring const ArrayAdapter::toString(var value) {
     
     ss << "]";
     
-    return ss.str().c_str();
+    value.stringValue = ss.str();
+    
+    return value.stringValue.c_str();
 
 }

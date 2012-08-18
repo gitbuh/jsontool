@@ -1,49 +1,38 @@
 
-
-
 #include "jsontool.h"
+#include "macro.h"
 
-#include <iostream>
-
+#define A_ jsontool_array
+#define O_ jsontool_object
 
 using namespace jsontool;
 
-int main(int argc, char *argv[])
-{
-  
-  var testValue = 5.5;
-  
-  testValue += 5;
-  
-  Object myMap = {{"fee", 4}, {"foe", 5}};
-  
-  var testValue2 = {"asdf", 9}; 
-  
-  var lmno = "dfg";
-  
-	cout << "Test: " << lmno << endl;
-	
-  lmno += "hjkl";
-  
-	cout << "Test: " << lmno << endl;
-  
-  // var myVal = (Object){{"fee", 4}, {"foe", 5}};
-  
-  var myArray = { lmno, 8, false, testValue, { "asdfsdf", 19 } };
-  
-  var myObject = (Object){{"fee", 4}, {"foe", {"sdgsdg", 123}}};
-  
-  // var baz = ;
-  
-  float foo = testValue;
-  
-  const char * bar = testValue;
 
-	cout << "Test: " << myArray << "..." << myObject << endl;
+int main(int argc, char *argv[]) {
+  
+  
+  var myArray = A_("lmno", 8, false, 1);
+  
+  myArray[1] = 35;
+  
+  myArray[6] = 2;
+
+  myArray[1] += 4.5;
+  
+  var grua = myArray[12];
+  
+	cout << "myArray: " << myArray << endl;
+
 	
-	cout << myObject["fee"] << endl;
+  var myObject = O_({"lmno", 8}, {"false", 1});
 	
-	cout << myArray[4] << endl;
+	myObject["boo"] = "asd";
+	
+	var blah = myObject["blah"];
+	
+	cout << "myObject: " << myObject << endl;
+  
+  
 	
 	return 0;
 }

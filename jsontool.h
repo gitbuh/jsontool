@@ -23,16 +23,29 @@ namespace jsontool {
   
   typedef map<string, var> Object;
   typedef vector<var> Array;
+  typedef pair<string, var> property;
   typedef bool boolean;
   typedef long double number;
   typedef string string;
-  typedef const char * cstring;
+  typedef const char* cstring;
 
-  enum ValueType { TYPE_UNDEFINED, TYPE_NULL, TYPE_BOOLEAN, TYPE_NUMBER, TYPE_STRING, TYPE_OBJECT, TYPE_ARRAY };
+  enum ValueType { 
+    TYPE_UNDEFINED, 
+    TYPE_NULL, 
+    TYPE_BOOLEAN, 
+    TYPE_NUMBER, 
+    TYPE_STRING, 
+    TYPE_OBJECT, 
+    TYPE_ARRAY 
+  };
 
   class TypeAdapter {
   
     public:
+    
+    var* value;
+    
+    ValueType type;
   
     virtual boolean toBoolean(var);
     virtual number  toNumber(var);
@@ -40,16 +53,25 @@ namespace jsontool {
     virtual Object  toObject(var);
     virtual Array   toArray(var);
     
+    TypeAdapter() { type = TYPE_UNDEFINED; }
+    
   };
 
-  class NullAdapter: public TypeAdapter { };
+  class NullAdapter: public TypeAdapter { 
+    
+    public:
+  
+    NullAdapter(): TypeAdapter() { type = TYPE_NULL; };
+    
+  };
   
   class BooleanAdapter: public TypeAdapter {
   
     public:
   
-    number  toNumber(var);
+    number toNumber(var);
     cstring const toString(var);
+    BooleanAdapter(): TypeAdapter() { type = TYPE_BOOLEAN; };
     
   };
   class NumberAdapter: public TypeAdapter {
@@ -59,13 +81,17 @@ namespace jsontool {
     boolean toBoolean(var);
     cstring const toString(var);
     
+    NumberAdapter(): TypeAdapter() { type = TYPE_NUMBER; };
+    
   };
   class StringAdapter: public TypeAdapter {
   
     public:
   
     boolean toBoolean(var);
-    number  toNumber(var);
+    number toNumber(var);
+    
+    StringAdapter(): TypeAdapter() { type = TYPE_STRING; };
     
   };
   class ObjectAdapter: public TypeAdapter {
@@ -73,10 +99,10 @@ namespace jsontool {
     public:
   
     boolean toBoolean(var);
-    number  toNumber(var);
+    number toNumber(var);
     cstring const toString(var);
-    // Object  toObject(var);
-    // Array   toArray(var);
+    
+    ObjectAdapter(): TypeAdapter() { type = TYPE_OBJECT; };
   
   };
   class ArrayAdapter: public TypeAdapter {
@@ -84,10 +110,10 @@ namespace jsontool {
     public:
   
     boolean toBoolean(var);
-    number  toNumber(var);
+    number toNumber(var);
     cstring const toString(var);
-    // Object  toObject(var);
-    // Array   toArray(var);
+    
+    ArrayAdapter(): TypeAdapter() { type = TYPE_ARRAY; };
     
   };
   

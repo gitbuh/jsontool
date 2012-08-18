@@ -1,65 +1,119 @@
-class var {
+class varBase {
+};
+
+class var: public varBase {
 
   public:
-
-  ValueType type;
   
   TypeAdapter *adapter;
   
   boolean booleanValue;
   
-  string stringValue;
-  
   number numberValue;
+  
+  string stringValue;
   
   Object objectValue;
   
   Array arrayValue;
   
+  //
+  
+  Object tempKeys;
+  
+  var *parent;
+  
+  bool isTempArrayMember;
+  
+  bool isTempObjectMember;
+  
+  unsigned tempArrayKey;
+  
+  string tempObjectKey;
+  
   
   // initializers
   
   
+  void reset() {
+  
+    booleanValue = false;
+    numberValue = 0;
+    stringValue = "null"; // "undefined";
+    objectValue = Object();
+    arrayValue = Array();
+  }
+  
+  void init() {
+    isTempArrayMember = false;
+    isTempObjectMember = false;
+    reset();
+    adapter = new TypeAdapter();
+  }
+  
+  void setFromUndefined() {
+  
+    reset();
+    delete adapter;
+    adapter = new TypeAdapter();
+    
+  }
+  
+  void setFromNull() {
+  
+    reset();
+    stringValue = "null";
+    delete adapter;
+    adapter = new NullAdapter();
+    
+  }
+  
   void setFromBoolean(boolean value) {
   
-    type = TYPE_BOOLEAN;
+    reset();
     booleanValue = value;
+    delete adapter;
     adapter = new BooleanAdapter();
     
   }
   
   void setFromNumber(number value) {
   
-    type = TYPE_NUMBER;
+    reset();
     numberValue = value;
-    // delete adapter;
+    delete adapter;
     adapter = new NumberAdapter();
     
   }
   
   void setFromString(string value) {
   
-    type = TYPE_STRING;
+    reset();
     stringValue = value;
+    delete adapter;
     adapter = new StringAdapter();
     
   }
   
   void setFromObject(Object value) {
   
-    type = TYPE_OBJECT;
+    reset();
     objectValue = value;
+    delete adapter;
     adapter = new ObjectAdapter();
     
   }
   
   void setFromArray(Array value) {
   
-    type = TYPE_ARRAY;
+    reset();
     arrayValue = value;
+    delete adapter;
     adapter = new ArrayAdapter();
     
   }
+  
+  // adapter wrappers
   
   cstring toString() const {
   
@@ -67,7 +121,13 @@ class var {
   
   }
   
-  // cast to other types
+  number toNumber() const {
+  
+    return adapter->toNumber(*this);
+  
+  }
+  
+  // cast operators
   
   operator number() const { 
     return numberValue;
@@ -91,35 +151,89 @@ class var {
   
   // operators
   
-  var operator += (const var &rhs) {
-    if (isNumber())
-      setFromNumber(numberValue + rhs.numberValue);
-    else
-      setFromString(stringValue + rhs.stringValue);
+  
+  var operator = (var rhs) {
+    
+      adapter = rhs.adapter;
+  
+      booleanValue = rhs.booleanValue;
+      
+      numberValue = rhs.numberValue;
+      
+      stringValue = rhs.stringValue;
+      
+      objectValue = rhs.objectValue;
+      
+      arrayValue = rhs.arrayValue;
+      
+      if (isTempArrayMember) {
+        isTempArrayMember = false;
+        parent->arrayValue.resize(tempArrayKey + 1);
+        parent->arrayValue[tempArrayKey] = *this;
+        // parent->tempKeys.erase((cstring)(var)tempArrayKey);
+      } else if (isTempObjectMember) {
+        isTempObjectMember = false;
+        parent->objectValue[tempObjectKey] = *this;
+        // parent->tempKeys.erase((cstring)(var)tempArrayKey);
+      }
+    
     return *this;
   }
   
-  var operator -= (const var &rhs) {
-    setFromNumber(numberValue - rhs.numberValue);
+  
+  var operator += (var rhs) {
+    numberValue += rhs.numberValue;
+    stringValue += rhs.stringValue;
     return *this;
   }
   
-  var operator *= (const var &rhs) {
-    setFromNumber(numberValue * rhs.numberValue);
+  var operator -= (var rhs) {
+    numberValue -= rhs.numberValue;
     return *this;
   }
   
-  var operator /= (const var &rhs) {
-    setFromNumber(numberValue / rhs.numberValue);
+  var operator *= (var rhs) {
+    numberValue *= rhs.numberValue;
     return *this;
   }
   
-  var operator [] (const cstring key) {
+  var operator /= (var rhs) {
+    numberValue /= rhs.numberValue;
+    return *this;
+  }
+  
+  var &operator [] (const cstring key) {
+  
+    if (!objectValue.count(key)) {
+    
+      tempKeys[key] = var();
+      tempKeys[key].isTempObjectMember = true;
+      tempKeys[key].parent = this;
+      tempKeys[key].tempObjectKey = key;
+      
+      return tempKeys[key];
+      
+    }
+    
     return objectValue[key];
   }
   
-  var operator [] (const int key) {
+  var &operator [] (const int key) {
+    
+    if ((unsigned)key >= arrayValue.size()) {
+    
+      cstring k = (var)key;
+      tempKeys[k] = var();
+      tempKeys[k].isTempArrayMember = true;
+      tempKeys[k].parent = this;
+      tempKeys[k].tempArrayKey = key;
+      
+      return tempKeys[k];
+      
+    }
+    
     return arrayValue[key];
+    
   }
   
   
@@ -128,110 +242,127 @@ class var {
   
   var() {
   
-    type = TYPE_UNDEFINED;
-    stringValue = "undefined";
+    init();
   
   }
   
   var(bool value) {
   
+    init();
     setFromBoolean(value);
   
   }
   
   var(long double value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(double value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(long value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(int value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(unsigned value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(unsigned long value) {
   
+    init();
     setFromNumber(value);
   
   }
   
   var(cstring value) {
-    
+   
+    init();
     setFromString(value);
   
   }
   
   var(Object value) {
     
+    init();
     setFromObject(value);
   
   }
   
   var(Array value) {
     
+    init();
     setFromArray(value);
   
   }
   
-  var(initializer_list<var> value) {
+  #ifdef cpp0x
   
-    cout << "initializer_list" << endl;
+  var(initializer_list<var> value) {
     
-    setFromArray((vector<var>)value);
+    init();
+    setFromArray(value);
   
   }
+  
+  #endif
   
   
   // type checks (for convenience)
   
+  bool isUndefined() {
+  
+    return adapter->type == TYPE_UNDEFINED;
+    
+  }
   bool isNull() {
   
-    return type == TYPE_NULL;
+    return adapter->type == TYPE_NULL;
   
   }
   bool isBoolean() {
   
-    return type == TYPE_BOOLEAN;
+    return adapter->type == TYPE_BOOLEAN;
   
   }
   bool isNumber() {
   
-    return type == TYPE_NUMBER;
+    return adapter->type == TYPE_NUMBER;
   
   }
   bool isString() {
   
-    return type == TYPE_STRING;
+    return adapter->type == TYPE_STRING;
   
   }
   bool isObject() {
   
-    return type == TYPE_OBJECT;
+    return adapter->type == TYPE_OBJECT;
   
   }
   bool isArray() {
   
-    return type == TYPE_ARRAY;
+    return adapter->type == TYPE_ARRAY;
   
   }
 
