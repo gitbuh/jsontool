@@ -8,7 +8,7 @@ number TypeAdapter::toNumber(var value) {
   return value.numberValue;
 }
   
-cstring const TypeAdapter::toString(var value) {
+string  TypeAdapter::toString(var value) {
   return value.stringValue.c_str();
 }
   
@@ -25,7 +25,7 @@ Array TypeAdapter::toArray(var value) {
 number BooleanAdapter::toNumber(var value) {
   return value.booleanValue == false ? 0 : 1;
 }
-cstring const BooleanAdapter::toString(var value) {
+string  BooleanAdapter::toString(var value) {
   return value.booleanValue == false ? "false" : "true";
 }
   
@@ -35,7 +35,7 @@ boolean NumberAdapter::toBoolean(var value) {
   return value.numberValue == 0 ? false : true;
 }
 
-cstring const NumberAdapter::toString(var value) {
+string  NumberAdapter::toString(var value) {
   ostringstream ss;
   value.stringValue = ss << value.numberValue ? ss.str() : "NaN";
   return value.stringValue.c_str();
@@ -56,15 +56,15 @@ number StringAdapter::toNumber(var value) {
   
 // object adapter
 
-number ObjectAdapter::toNumber(var value) {
+number ObjectAdapter::toNumber(var) {
   return 0;
 }
 
-boolean ObjectAdapter::toBoolean(var value) {
+boolean ObjectAdapter::toBoolean(var) {
   return true;
 }
 
-cstring const ObjectAdapter::toString(var value) {
+string  ObjectAdapter::toString(var value) {
 
     ostringstream ss;
     
@@ -73,9 +73,9 @@ cstring const ObjectAdapter::toString(var value) {
     for (Object::iterator it = value.objectValue.begin(); it != value.objectValue.end(); ++it) {
     
       if (it != value.objectValue.begin())
-        ss << ", ";
+        ss << ",";
         
-      ss << "\"" << it->first << "\":" << (cstring)(it->second);
+      ss << "\"" << it->first << "\":" << (string)it->second;
     }
     
     
@@ -94,11 +94,11 @@ number ArrayAdapter::toNumber(var value) {
   return StringAdapter().toNumber(value.arrayValue);
 }
 
-boolean ArrayAdapter::toBoolean(var value) {
+boolean ArrayAdapter::toBoolean(var) {
   return true;
 }
 
-cstring const ArrayAdapter::toString(var value) {
+string  ArrayAdapter::toString(var value) {
 
     ostringstream ss;
     
@@ -106,10 +106,10 @@ cstring const ArrayAdapter::toString(var value) {
       
     for (Array::iterator it = value.arrayValue.begin(); it != value.arrayValue.end(); ++it) {
     
-      cstring item = *it;
+      string  item = *it;
     
       if (it != value.arrayValue.begin())
-        ss << ", ";
+        ss << ",";
     
       if (it->isString()) {
       

@@ -21,13 +21,20 @@ namespace jsontool {
 
   class var;
   
-  typedef map<string, var> Object;
-  typedef vector<var> Array;
-  typedef pair<string, var> property;
+  class Null {};
+  
+  static const Null null;
+  
   typedef bool boolean;
   typedef long double number;
+  
   typedef string string;
   typedef const char* cstring;
+  
+  typedef map<string, var> Object;
+  typedef vector<var> Array;
+  typedef Object O_;
+  typedef Array A_;
 
   enum ValueType { 
     TYPE_UNDEFINED, 
@@ -49,7 +56,7 @@ namespace jsontool {
   
     virtual boolean toBoolean(var);
     virtual number  toNumber(var);
-    virtual cstring const toString(var);
+    virtual string toString(var);
     virtual Object  toObject(var);
     virtual Array   toArray(var);
     
@@ -70,7 +77,7 @@ namespace jsontool {
     public:
   
     number toNumber(var);
-    cstring const toString(var);
+    string toString(var);
     BooleanAdapter(): TypeAdapter() { type = TYPE_BOOLEAN; };
     
   };
@@ -79,7 +86,7 @@ namespace jsontool {
     public:
   
     boolean toBoolean(var);
-    cstring const toString(var);
+    string toString(var);
     
     NumberAdapter(): TypeAdapter() { type = TYPE_NUMBER; };
     
@@ -100,7 +107,7 @@ namespace jsontool {
   
     boolean toBoolean(var);
     number toNumber(var);
-    cstring const toString(var);
+    string toString(var);
     
     ObjectAdapter(): TypeAdapter() { type = TYPE_OBJECT; };
   
@@ -111,7 +118,7 @@ namespace jsontool {
   
     boolean toBoolean(var);
     number toNumber(var);
-    cstring const toString(var);
+    string toString(var);
     
     ArrayAdapter(): TypeAdapter() { type = TYPE_ARRAY; };
     
@@ -123,6 +130,9 @@ namespace jsontool {
   ostream& operator<<(ostream &os, const var &value) {
     return os << value.toString();
   }
+
+
+
 
 }
   

@@ -1,7 +1,4 @@
-class varBase {
-};
-
-class var: public varBase {
+class var {
 
   public:
   
@@ -49,6 +46,15 @@ class var: public varBase {
     isTempObjectMember = false;
     reset();
     adapter = new TypeAdapter();
+  }
+  
+  void setFromVariant(const var &value) {
+  
+    reset();
+    delete adapter;
+    adapter = new TypeAdapter();
+    copy(value);
+    
   }
   
   void setFromUndefined() {
@@ -115,7 +121,7 @@ class var: public varBase {
   
   // adapter wrappers
   
-  cstring toString() const {
+  string toString() const {
   
     return adapter->toString(*this);
   
@@ -136,11 +142,11 @@ class var: public varBase {
   operator string() const { 
     return toString();
   }
-  
+  /*
   operator cstring() const { 
-    return toString();
+    return toString().c_str();
   }
-  
+  */
   operator Object() const { 
     return objectValue;
   }
@@ -152,34 +158,45 @@ class var: public varBase {
   // operators
   
   
-  var operator = (var rhs) {
-    
-      adapter = rhs.adapter;
+  void checkTempMember() {
   
-      booleanValue = rhs.booleanValue;
-      
-      numberValue = rhs.numberValue;
-      
-      stringValue = rhs.stringValue;
-      
-      objectValue = rhs.objectValue;
-      
-      arrayValue = rhs.arrayValue;
-      
       if (isTempArrayMember) {
         isTempArrayMember = false;
         parent->arrayValue.resize(tempArrayKey + 1);
         parent->arrayValue[tempArrayKey] = *this;
-        // parent->tempKeys.erase((cstring)(var)tempArrayKey);
+        parent->tempKeys.erase((string)(var)tempArrayKey);
       } else if (isTempObjectMember) {
         isTempObjectMember = false;
         parent->objectValue[tempObjectKey] = *this;
-        // parent->tempKeys.erase((cstring)(var)tempArrayKey);
+        parent->tempKeys.erase(tempObjectKey);
       }
+      
+  }
+  
+  void copy(var source) {
+  
+      adapter = source.adapter;
+  
+      booleanValue = source.booleanValue;
+      
+      numberValue = source.numberValue;
+      
+      stringValue = source.stringValue;
+      
+      objectValue = source.objectValue;
+      
+      arrayValue = source.arrayValue;
+      
+  }
+  
+  var operator = (var rhs) {
+    
+      copy(rhs);
+      
+      checkTempMember();
     
     return *this;
   }
-  
   
   var operator += (var rhs) {
     numberValue += rhs.numberValue;
@@ -202,7 +219,7 @@ class var: public varBase {
     return *this;
   }
   
-  var &operator [] (const cstring key) {
+  var &operator [] (const string key) {
   
     if (!objectValue.count(key)) {
     
@@ -222,7 +239,7 @@ class var: public varBase {
     
     if ((unsigned)key >= arrayValue.size()) {
     
-      cstring k = (var)key;
+      string k = (var)key;
       tempKeys[k] = var();
       tempKeys[k].isTempArrayMember = true;
       tempKeys[k].parent = this;
@@ -245,6 +262,12 @@ class var: public varBase {
     init();
   
   }
+
+  var(Null) {
+  
+    init();
+  
+  }
   
   var(bool value) {
   
@@ -261,14 +284,14 @@ class var: public varBase {
   }
   
   var(double value) {
-  
+    
     init();
     setFromNumber(value);
   
   }
   
   var(long value) {
-  
+    
     init();
     setFromNumber(value);
   
@@ -315,17 +338,6 @@ class var: public varBase {
     setFromArray(value);
   
   }
-  
-  #ifdef cpp0x
-  
-  var(initializer_list<var> value) {
-    
-    init();
-    setFromArray(value);
-  
-  }
-  
-  #endif
   
   
   // type checks (for convenience)
