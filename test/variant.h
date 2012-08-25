@@ -5,6 +5,56 @@ using namespace jsontool;
 
 // string conversion
 
+TEST_CASE("variant/equality", "operator ==") {
+
+  var v = 1;
+  var v2 = true;
+  
+  REQUIRE(v == true);
+  REQUIRE(v != false);
+  
+  v = 2; 
+  
+  REQUIRE(v != true);
+  REQUIRE(v != false);
+  
+  v = "3.0";
+  
+  REQUIRE(v == 3);
+  REQUIRE(v != 4);
+  
+  v = 3.0;
+  
+  REQUIRE(v == "3");
+  REQUIRE(v != "4");
+  
+  v = "haha";
+  v2 = "haha";
+  
+  REQUIRE(v == v2);
+  
+  v2 = "hehe";
+  
+  REQUIRE(v != v2);
+  
+  v = A_{ 1, true, "three" };
+  
+  v2 = A_{ 1, true, "three" };
+  
+  REQUIRE(v != v2);
+  
+  v2 = v;
+  
+  //v2[0] = 2;
+  
+  cout << "v: " << v << endl;
+  cout << "v2: " << v2 << endl;
+  
+  // REQUIRE(v[0] == 2);
+  REQUIRE(v == v2);
+
+}
+
 TEST_CASE("adapter/null/tostring", "Null to string") {
 
   var v;

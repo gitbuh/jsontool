@@ -23,7 +23,6 @@ namespace jsontool {
   
   class Null {};
   
-  static const Null null;
   
   typedef bool boolean;
   typedef long double number;
@@ -36,6 +35,8 @@ namespace jsontool {
   typedef Object O_;
   typedef Array A_;
 
+  static const Null null;
+  
   enum ValueType { 
     TYPE_UNDEFINED, 
     TYPE_NULL, 
@@ -53,7 +54,7 @@ namespace jsontool {
     var* value;
     
     ValueType type;
-  
+    
     virtual boolean toBoolean(var);
     virtual number  toNumber(var);
     virtual string toString(var);
