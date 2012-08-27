@@ -4,7 +4,7 @@
 CPPFLAGS += -I..
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++0x -g
 
 # URL to pull catch.hpp from if not present.
 # TODO: change this to point to a particular commit.
@@ -14,7 +14,7 @@ CATCHURL = https://raw.github.com/philsquared/Catch/master/single_include/catch.
 all : test
 
 test : clean-tests catch.hpp unittests
-	./unittests
+	valgrind ./unittests
 
 clean-tests :
 	rm -f unittests

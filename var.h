@@ -2,7 +2,7 @@ class var {
 
   public:
   
-  TypeAdapter *adapter;
+  TypeAdapter* adapter;
   
   boolean booleanValue;
   
@@ -10,17 +10,15 @@ class var {
   
   string stringValue;
   
-  Object objectValue;
+  shared_ptr<Object> objectValue;
   
-  Array arrayValue;
+  shared_ptr<Array> arrayValue;
   
   //
   
-  var *clone;
-  
   Object tempKeys;
   
-  var *parent;
+  var* parent;
   
   bool isTempArrayMember;
   
@@ -29,6 +27,8 @@ class var {
   unsigned tempArrayKey;
   
   string tempObjectKey;
+  
+  //
   
   
   // initializers
@@ -39,23 +39,22 @@ class var {
     booleanValue = false;
     numberValue = 0;
     stringValue = "null"; // "undefined";
-    objectValue = Object();
-    arrayValue = Array();
+    objectValue = shared_ptr<Object>(new Object());
+    arrayValue = shared_ptr<Array>(new Array());
   }
   
   void init() {
+    
     isTempArrayMember = false;
     isTempObjectMember = false;
-    clone = nullptr;
-    reset();
-    adapter = new TypeAdapter();
+    //adapter = new TypeAdapter();
+    adapter = getAdapter(TYPE_UNDEFINED);
   }
   
   void setFromVariant(const var &value) {
   
     reset();
-    delete adapter;
-    adapter = new TypeAdapter();
+    adapter = getAdapter(TYPE_UNDEFINED);
     copy(value);
     
   }
@@ -63,8 +62,7 @@ class var {
   void setFromUndefined() {
   
     reset();
-    delete adapter;
-    adapter = new TypeAdapter();
+    adapter = getAdapter(TYPE_UNDEFINED);
     
   }
   
@@ -72,8 +70,7 @@ class var {
   
     reset();
     stringValue = "null";
-    delete adapter;
-    adapter = new NullAdapter();
+    adapter = getAdapter(TYPE_NULL);
     
   }
   
@@ -81,8 +78,7 @@ class var {
   
     reset();
     booleanValue = value;
-    delete adapter;
-    adapter = new BooleanAdapter();
+    adapter = getAdapter(TYPE_BOOLEAN);
     
   }
   
@@ -90,8 +86,7 @@ class var {
   
     reset();
     numberValue = value;
-    delete adapter;
-    adapter = new NumberAdapter();
+    adapter = getAdapter(TYPE_NUMBER);
     
   }
   
@@ -99,40 +94,38 @@ class var {
   
     reset();
     stringValue = value;
-    delete adapter;
-    adapter = new StringAdapter();
+    adapter = getAdapter(TYPE_STRING);
     
   }
   
   void setFromObject(Object value) {
   
     reset();
-    objectValue = value;
-    delete adapter;
-    adapter = new ObjectAdapter();
+    objectValue = shared_ptr<Object>(new Object(value));
+    adapter = getAdapter(TYPE_OBJECT);
     
   }
   
   void setFromArray(Array value) {
   
     reset();
-    arrayValue = value;
-    delete adapter;
-    adapter = new ArrayAdapter();
+    Array v = value;
+    arrayValue = shared_ptr<Array>(new Array(value));
+    adapter = getAdapter(TYPE_ARRAY);
     
   }
   
   // adapter wrappers
   
-  string toString() const {
+  string toString() {
   
-    return adapter->toString(*this);
+    return adapter->toString(this);
   
   }
   
-  number toNumber() const {
+  number toNumber() {
   
-    return adapter->toNumber(*this);
+    return adapter->toNumber(this);
   
   }
   
@@ -143,35 +136,30 @@ class var {
     return numberValue;
   }
   
-  operator string() const { 
+  operator string()  { 
     return toString();
   }
-  /*
-  operator cstring() const { 
-    return toString().c_str();
-  }
-  */
+  
   operator Object() const { 
-    return objectValue;
+    return *objectValue;
   }
   
   operator Array() const { 
-    return arrayValue;
+    return *arrayValue;
   }
   
   // operators
-  
   
   void checkTempMember() {
   
       if (isTempArrayMember) {
         isTempArrayMember = false;
-        parent->arrayValue.resize(tempArrayKey + 1);
-        parent->arrayValue[tempArrayKey] = *this;
+        parent->arrayValue->resize(tempArrayKey + 1);
+        (*parent->arrayValue)[tempArrayKey] = *this;
         parent->tempKeys.erase((string)(var)tempArrayKey);
       } else if (isTempObjectMember) {
         isTempObjectMember = false;
-        parent->objectValue[tempObjectKey] = *this;
+        (*parent->objectValue)[tempObjectKey] = *this;
         parent->tempKeys.erase(tempObjectKey);
       }
       
@@ -291,7 +279,6 @@ class var {
     return !(*this == val);
   }
   
-  
   var operator = (var rhs) {
     
       copy(rhs);
@@ -324,7 +311,7 @@ class var {
   
   var &operator [] (const string key) {
   
-    if (!objectValue.count(key)) {
+    if (!objectValue->count(key)) {
     
       tempKeys[key] = var();
       tempKeys[key].isTempObjectMember = true;
@@ -335,12 +322,12 @@ class var {
       
     }
     
-    return objectValue[key];
+    return (*objectValue)[key];
   }
   
   var &operator [] (const int key) {
     
-    if ((unsigned)key >= arrayValue.size()) {
+    if ((unsigned)key >= arrayValue->size()) {
     
       string k = (var)key;
       tempKeys[k] = var();
@@ -352,23 +339,51 @@ class var {
       
     }
     
-    return arrayValue[key];
+    return (*arrayValue)[key];
     
   }
   
+  TypeAdapter* getAdapter(ValueType type) {
+
+    static map<ValueType, TypeAdapter*> adapters;
+    
+    if (adapters.empty()) {
+    
+      static TypeAdapter a;
+      static NullAdapter b;
+      static BooleanAdapter c;
+      static NumberAdapter d;
+      static StringAdapter e;
+      static ObjectAdapter f;
+      static ArrayAdapter g;
+
+      adapters[TYPE_UNDEFINED] = &a;
+      adapters[TYPE_NULL] = &b;
+      adapters[TYPE_BOOLEAN] = &c;
+      adapters[TYPE_NUMBER] = &d;
+      adapters[TYPE_STRING] = &e;
+      adapters[TYPE_OBJECT] = &f;
+      adapters[TYPE_ARRAY] = &g;
+        
+    }
+    
+    return adapters[type];
+    
+  }
   
   // ctors
 
-  
   var() {
   
     init();
+    reset();
   
   }
 
   var(Null) {
   
     init();
+    reset();
   
   }
   
@@ -482,3 +497,4 @@ class var {
   }
 
 };
+

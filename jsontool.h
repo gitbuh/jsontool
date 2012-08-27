@@ -47,6 +47,7 @@ namespace jsontool {
     TYPE_ARRAY 
   };
 
+
   class TypeAdapter {
   
     public:
@@ -55,11 +56,9 @@ namespace jsontool {
     
     ValueType type;
     
-    virtual boolean toBoolean(var);
-    virtual number  toNumber(var);
-    virtual string toString(var);
-    virtual Object  toObject(var);
-    virtual Array   toArray(var);
+    virtual boolean toBoolean(var *);
+    virtual number  toNumber(var *);
+    virtual string  toString(var *);
     
     TypeAdapter() { type = TYPE_UNDEFINED; }
     
@@ -77,8 +76,8 @@ namespace jsontool {
   
     public:
   
-    number toNumber(var);
-    string toString(var);
+    number toNumber(var *);
+    string toString(var *);
     BooleanAdapter(): TypeAdapter() { type = TYPE_BOOLEAN; };
     
   };
@@ -86,8 +85,8 @@ namespace jsontool {
   
     public:
   
-    boolean toBoolean(var);
-    string toString(var);
+    boolean toBoolean(var *);
+    string toString(var *);
     
     NumberAdapter(): TypeAdapter() { type = TYPE_NUMBER; };
     
@@ -96,8 +95,8 @@ namespace jsontool {
   
     public:
   
-    boolean toBoolean(var);
-    number toNumber(var);
+    boolean toBoolean(var *);
+    number toNumber(var *);
     
     StringAdapter(): TypeAdapter() { type = TYPE_STRING; };
     
@@ -106,9 +105,9 @@ namespace jsontool {
   
     public:
   
-    boolean toBoolean(var);
-    number toNumber(var);
-    string toString(var);
+    boolean toBoolean(var *);
+    number toNumber(var *);
+    string toString(var *);
     
     ObjectAdapter(): TypeAdapter() { type = TYPE_OBJECT; };
   
@@ -117,9 +116,9 @@ namespace jsontool {
   
     public:
   
-    boolean toBoolean(var);
-    number toNumber(var);
-    string toString(var);
+    boolean toBoolean(var *);
+    number toNumber(var *);
+    string toString(var *);
     
     ArrayAdapter(): TypeAdapter() { type = TYPE_ARRAY; };
     
@@ -128,7 +127,7 @@ namespace jsontool {
   #include "var.h"
   #include "TypeAdapter.h"
   
-  ostream& operator<<(ostream &os, const var &value) {
+  ostream& operator<<(ostream &os, var value) {
     return os << value.toString();
   }
 

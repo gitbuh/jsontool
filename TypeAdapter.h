@@ -1,78 +1,70 @@
-// defaults
+// defaults (undefined and null)
 
-boolean TypeAdapter::toBoolean(var value) {
-  return value.booleanValue;
+boolean TypeAdapter::toBoolean(var *value) {
+  return value->booleanValue;
 }
   
-number TypeAdapter::toNumber(var value) {
-  return value.numberValue;
+number TypeAdapter::toNumber(var *value) {
+  return value->numberValue;
 }
   
-string  TypeAdapter::toString(var value) {
-  return value.stringValue.c_str();
-}
-  
-Object TypeAdapter::toObject(var value) {
-  return value.objectValue;
-}
-  
-Array TypeAdapter::toArray(var value) {
-  return value.arrayValue;
+string  TypeAdapter::toString(var *value) {
+  return value->stringValue.c_str();
 }
 
 // boolean adapter
 
-number BooleanAdapter::toNumber(var value) {
-  return value.booleanValue == false ? 0 : 1;
+number BooleanAdapter::toNumber(var *value) {
+  return value->booleanValue == false ? 0 : 1;
 }
-string  BooleanAdapter::toString(var value) {
-  return value.booleanValue == false ? "false" : "true";
+string  BooleanAdapter::toString(var *value) {
+  return value->booleanValue == false ? "false" : "true";
 }
   
 // number adapter
 
-boolean NumberAdapter::toBoolean(var value) {
-  return value.numberValue == 0 ? false : true;
+boolean NumberAdapter::toBoolean(var *value) {
+  return value->numberValue == 0 ? false : true;
 }
 
-string  NumberAdapter::toString(var value) {
+string  NumberAdapter::toString(var *value) {
   ostringstream ss;
-  value.stringValue = ss << value.numberValue ? ss.str() : "NaN";
-  return value.stringValue.c_str();
+  value->stringValue = ss << value->numberValue ? ss.str() : "NaN";
+  return value->stringValue.c_str();
 }
 
 // string adapter
 
-boolean StringAdapter::toBoolean(var value) {
-  return value.stringValue == "" ? false : true;
+boolean StringAdapter::toBoolean(var *value) {
+  return value->stringValue == "" ? false : true;
 }
 
-number StringAdapter::toNumber(var value) {
+number StringAdapter::toNumber(var *value) {
   number n;  
-  istringstream ss(value.stringValue);
+  istringstream ss(value->stringValue);
   return ss >> n ? n : 0;
 }
 
   
 // object adapter
 
-number ObjectAdapter::toNumber(var) {
+number ObjectAdapter::toNumber(var *) {
   return 0;
 }
 
-boolean ObjectAdapter::toBoolean(var) {
+boolean ObjectAdapter::toBoolean(var *) {
   return true;
 }
 
-string  ObjectAdapter::toString(var value) {
+string  ObjectAdapter::toString(var *value) {
 
     ostringstream ss;
     
     ss << "{";
     
-    for (Object::iterator it = value.objectValue.begin(); it != value.objectValue.end(); ++it) {
+    for (Object::iterator it = value->objectValue->begin(); it != value->objectValue->end(); ++it) {
     
-      if (it != value.objectValue.begin())
+      if (it != value->objectValue->begin())
         ss << ",";
         
       ss << "\"" << it->first << "\":" << (string)it->second;
@@ -81,34 +73,37 @@ string  ObjectAdapter::toString(var value) {
     
     ss << "}";
     
-    value.stringValue = ss.str();
+    value->stringValue = ss.str();
     
-    return value.stringValue.c_str();
+    return value->stringValue.c_str();
 
 }
 
 
 // array adapter
 
-number ArrayAdapter::toNumber(var value) {
-  return StringAdapter().toNumber(value.arrayValue);
+number ArrayAdapter::toNumber(var *value) {
+  return 0; // FIXME
 }
 
-boolean ArrayAdapter::toBoolean(var) {
+
+
+
+boolean ArrayAdapter::toBoolean(var *) {
   return true;
 }
 
-string  ArrayAdapter::toString(var value) {
+string  ArrayAdapter::toString(var *value) {
 
     ostringstream ss;
     
     ss << "[";
       
-    for (Array::iterator it = value.arrayValue.begin(); it != value.arrayValue.end(); ++it) {
+    for (Array::iterator it = value->arrayValue->begin(); it != value->arrayValue->end(); ++it) {
     
       string  item = *it;
     
-      if (it != value.arrayValue.begin())
+      if (it != value->arrayValue->begin())
         ss << ",";
     
       if (it->isString()) {
@@ -127,8 +122,8 @@ string  ArrayAdapter::toString(var value) {
     
     ss << "]";
     
-    value.stringValue = ss.str();
+    value->stringValue = ss.str();
     
-    return value.stringValue.c_str();
+    return value->stringValue.c_str();
 
 }
