@@ -1,7 +1,7 @@
 # Make and run unit tests.
 
 # Flags passed to the preprocessor.
-CPPFLAGS += -I..
+CPPFLAGS += -I../include -I. -Isrc
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -std=c++0x -g
@@ -28,4 +28,4 @@ catch.hpp :
 	wget $(CATCHURL)
 
 unittests :
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) alltests.cpp -o unittests
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) src/all.cpp -o unittests
