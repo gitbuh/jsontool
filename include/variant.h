@@ -124,12 +124,16 @@ protected:
 
   }
 
-  TypeAdapter* adapter;
+  template <typename T>
+  static pair<T, T> arrayToPair(T (&p)[2]) {
 
+      return make_pair(p[0], p[1]);
+  }
+
+  TypeAdapter* adapter;
 
 public:
 
-  friend class jsontool;
   friend class compare;
   friend class parser;
 
@@ -173,7 +177,6 @@ public:
       isTempArrayMember = false;
       parent->arrayValue->resize(tempArrayKey + 1);
       (*parent->arrayValue)[tempArrayKey] = *this;
-      // next line causes valgrind to freak out for some reason
       // parent->tempKeys.erase((string)(var)tempArrayKey);
     } else if (isTempObjectMember) {
       isTempObjectMember = false;
@@ -319,7 +322,6 @@ public:
 
   }
 
-
   // ctors
 
   var() {
@@ -413,7 +415,9 @@ public:
 
   }
 
-  template <typename T>
+  // vector
+
+  template<typename T>
   var(vector<T> value) {
 
     init();
@@ -421,11 +425,35 @@ public:
 
   }
 
-  template <typename T1, typename T2>
+  // map
+
+  template<typename T1, typename T2>
   var(map<T1, T2> value) {
 
     init();
     setFromObject(Object(value.begin(), value.end()));
+
+  }
+
+  // c array
+
+  template<typename T, int N>
+  var(T(& value)[N]) {
+
+    init();
+    setFromArray(Array(value, value + sizeof(value) / sizeof(T)));
+
+  }
+
+  // two dimensional c array
+
+  template<typename T, int N>
+  var(T(& value)[N][2]) {
+
+    init();
+    map<string, var> result;
+    transform(value, value+N, inserter(result, result.begin()), arrayToPair<T>);
+    setFromObject(result);
 
   }
 

@@ -1,9 +1,6 @@
 
 void parser::append(var &context, string key, var value) {
 
-  cout << "appending " << (string) value << " (" << key << ") to "
-      << (string) context << endl;
-
   if (context.isObject()) {
     context[key] = value;
 
@@ -39,12 +36,7 @@ var parser::parse(string str) {
 
     ++index;
 
-    //cout << "[main loop] key buffer: " << keyBuffer.str() << endl;
-    // cout << "[main loop] character: " << character << endl;
-
     character = *it;
-
-    // cout << character << endl;
 
     switch (state) {
 
@@ -239,8 +231,6 @@ var parser::parse(string str) {
       }
 
     case STATE_STRING: {
-
-      // cout << "character: " << character << "\tis key: " << isKey << endl;
 
       stringstream &buffer = isKey ? keyBuffer : valBuffer;
 

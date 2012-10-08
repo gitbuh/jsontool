@@ -86,10 +86,6 @@ TEST_CASE("compare/equality", "Abstract equality operators") {
   CHECK(v[0] == 2);
   CHECK(v == v2);
 
-  v2[6] = "foo";
-
-  cout << v2 << endl;
-
 }
 
 }

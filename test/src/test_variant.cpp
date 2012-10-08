@@ -17,8 +17,6 @@ TEST_CASE("adapter/null/tostring", "Null to string") {
   var v3 = "haha";
   v3 = null;
 
-  // cout << v << endl;
-
   CHECK((string)v == "null");
   CHECK((string)v2 == "null");
   CHECK((string)v3 == "null");
@@ -78,7 +76,7 @@ TEST_CASE("adapter/object/tostring", "Object to string") {
 }
 
 
-TEST_CASE("variant/from_vector", "Object to string") {
+TEST_CASE("variant/from_vector", "Variant from vector") {
 
   std::vector<int> vec;
 
@@ -91,7 +89,7 @@ TEST_CASE("variant/from_vector", "Object to string") {
 }
 
 
-TEST_CASE("variant/from_map", "Object to string") {
+TEST_CASE("variant/from_map", "Variant from map") {
 
   std::map<string, int> m;
 
@@ -100,6 +98,32 @@ TEST_CASE("variant/from_map", "Object to string") {
   var v = m;
 
   CHECK((string)v == "{\"a\":42}");
+
+}
+
+TEST_CASE("variant/from_array", "Variant from array") {
+
+  int iVals[] = {12, 34, 45};
+  cstring cVals[] = {"FEE", "FIE", "FOE"};
+  var vVals[] = {1, true, "three"};
+
+  var v1 = iVals;
+  var v2 = cVals;
+  var v3 = vVals;
+
+  CHECK((string)v1 == "[12,34,45]");
+  CHECK((string)v2 == "[\"FEE\",\"FIE\",\"FOE\"]");
+  CHECK((string)v3 == "[1,true,\"three\"]");
+
+}
+
+TEST_CASE("variant/from_2d", "Variant from 2d array") {
+
+  var obj[][2] = { { "a", 12 }, { "b", 22 }, { "c", 34 } };
+
+  var v1 = obj;
+
+  CHECK((string)v1 == "{\"a\":12,\"b\":22,\"c\":34}");
 
 }
 
