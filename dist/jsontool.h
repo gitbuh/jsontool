@@ -891,6 +891,7 @@ var& ObjectAdapter::subscript(var &value, var key) {
 void ObjectAdapter::promoteTemp(var &value) {
 
   (*getParent(value).objectValue)[getTempKey(value)] = value;
+  // TODO: remove temporary value
   // parent->tempKeys.erase(tempObjectKey);
 
 }

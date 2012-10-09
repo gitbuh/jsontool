@@ -127,4 +127,33 @@ TEST_CASE("variant/from_2d", "Variant from 2d array") {
 
 }
 
+TEST_CASE("variant/object/subscript", "Object subscript notation") {
+
+  var v = Object();
+
+  v["x"] = 1;
+
+  CHECK((string)v == "{\"x\":1}");
+
+  v["y"] = 2;
+
+  CHECK((string)v == "{\"x\":1,\"y\":2}");
+
+}
+
+TEST_CASE("variant/array/subscript", "Array subscript notation") {
+
+  var v = Array();
+
+  v[0] = 1;
+
+  CHECK((string)v == "[1]");
+
+  v[2] = 3;
+
+  CHECK((string)v == "[1,null,3]");
+
+}
+
+
 }
