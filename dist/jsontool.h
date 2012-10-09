@@ -25,6 +25,8 @@ class Null {
 
 static const Null null;
 
+static const Null undefined;
+
 typedef bool boolean;
 typedef long double number;
 typedef const char* cstring;
@@ -64,9 +66,15 @@ public:
 
   virtual string toJSON(var &);
 
-  TypeAdapter() :
-    type(TYPE_UNDEFINED) {
-  }
+  virtual var &subscript(var &, var);
+
+  virtual var &getParent(var &);
+
+  virtual string &getTempKey(var &);
+
+  virtual var &setTemp(var &, string);
+
+  virtual void promoteTemp(var &value);
 
 };
 
@@ -141,6 +149,8 @@ public:
   boolean toBoolean(var &);
   number toNumber(var &);
   string toString(var &);
+  var &subscript(var &, var);
+  virtual void promoteTemp(var &value);
 
   ObjectAdapter() :
     TypeAdapter() {
@@ -156,6 +166,8 @@ public:
   boolean toBoolean(var &);
   number toNumber(var &);
   string toString(var &);
+  var &subscript(var &, var);
+  virtual void promoteTemp(var &value);
 
   ArrayAdapter() :
     TypeAdapter() {
@@ -178,17 +190,13 @@ class var {
 
 protected:
 
-  Object tempKeys;
-
   var* parent;
 
-  bool isTempArrayMember;
+  string tempKey; // string or unsigned
 
-  bool isTempObjectMember;
+  Object tempKeys;
 
-  unsigned tempArrayKey;
-
-  string tempObjectKey;
+  bool isTemp;
 
   TypeAdapter* getAdapter(ValueType type) {
 
@@ -230,8 +238,8 @@ protected:
 
   void init() {
 
-    isTempArrayMember = false;
-    isTempObjectMember = false;
+    isTemp = false;
+    isTemp= false;
     adapter = getAdapter(TYPE_UNDEFINED);
 
   }
@@ -300,10 +308,10 @@ protected:
 
   }
 
-  template <typename T>
-  static pair<T, T> arrayToPair(T (&p)[2]) {
+  template<typename T>
+  static pair<T, T> arrayToPair(T(&p)[2]) {
 
-      return make_pair(p[0], p[1]);
+    return make_pair(p[0], p[1]);
   }
 
   TypeAdapter* adapter;
@@ -312,6 +320,7 @@ public:
 
   friend class compare;
   friend class parser;
+  friend class TypeAdapter;
 
   boolean booleanValue;
 
@@ -327,6 +336,10 @@ public:
 
   operator boolean() {
     return adapter->toBoolean(*this);
+  }
+
+  operator unsigned() {
+    return adapter->toNumber(*this);
   }
 
   operator number() {
@@ -345,19 +358,14 @@ public:
     return *arrayValue;
   }
 
-  // operators
-
   void checkTempMember() {
 
-    if (isTempArrayMember) {
-      isTempArrayMember = false;
-      parent->arrayValue->resize(tempArrayKey + 1);
-      (*parent->arrayValue)[tempArrayKey] = *this;
-      // parent->tempKeys.erase((string)(var)tempArrayKey);
-    } else if (isTempObjectMember) {
-      isTempObjectMember = false;
-      (*parent->objectValue)[tempObjectKey] = *this;
-      // parent->tempKeys.erase(tempObjectKey);
+    if (isTemp) {
+
+      isTemp = false;
+
+      parent->adapter->promoteTemp(*this);
+
     }
 
   }
@@ -377,6 +385,8 @@ public:
     arrayValue = source.arrayValue;
 
   }
+
+  // equality operators
 
   template<typename T>
   bool operator ==(T val) {
@@ -434,6 +444,8 @@ public:
 
   }
 
+  // assignment operators
+
   var operator =(var rhs) {
 
     copy(rhs);
@@ -464,37 +476,12 @@ public:
     return *this;
   }
 
-  var &operator [](const string key) {
+  // subscript notation
 
-    if (!objectValue->count(key)) {
+  template<typename T>
+  var &operator [](const T &key) {
 
-      tempKeys[key] = var();
-      tempKeys[key].isTempObjectMember = true;
-      tempKeys[key].parent = this;
-      tempKeys[key].tempObjectKey = key;
-
-      return tempKeys[key];
-
-    }
-
-    return (*objectValue)[key];
-  }
-
-  var &operator [](const int key) {
-
-    if ((unsigned) key >= arrayValue->size()) {
-
-      string k = (var) key;
-      tempKeys[k] = var();
-      tempKeys[k].isTempArrayMember = true;
-      tempKeys[k].parent = this;
-      tempKeys[k].tempArrayKey = key;
-
-      return tempKeys[k];
-
-    }
-
-    return (*arrayValue)[key];
+    return adapter->subscript(*this, key);
 
   }
 
@@ -503,14 +490,14 @@ public:
   var() {
 
     init();
-    reset();
+    setFromUndefined();
 
   }
 
   var(Null) {
 
     init();
-    reset();
+    setFromNull();
 
   }
 
@@ -628,12 +615,13 @@ public:
 
     init();
     map<string, var> result;
-    transform(value, value+N, inserter(result, result.begin()), arrayToPair<T>);
+    transform(value, value + N, inserter(result, result.begin()),
+        arrayToPair<T> );
     setFromObject(result);
 
   }
 
-  // type checks (for convenience)
+  // type checks
 
   inline bool isUndefined() {
 
@@ -741,7 +729,39 @@ string TypeAdapter::toString(var &value) {
 }
 
 string TypeAdapter::toJSON(var &value) {
-  return (string)value;
+  return (string) value;
+}
+
+var &TypeAdapter::subscript(var &, var) {
+  static var undefined;
+  return undefined;
+}
+
+string &TypeAdapter::getTempKey(var &value) {
+
+  return value.tempKey;
+
+}
+
+var &TypeAdapter::getParent(var &value) {
+
+  return *value.parent;
+
+}
+
+
+var &TypeAdapter::setTemp(var &value, string key) {
+
+  value.tempKeys[key] = var();
+  value.tempKeys[key].isTemp = true;
+  value.tempKeys[key].parent = (&value);
+  value.tempKeys[key].tempKey = key;
+  return value.tempKeys[key];
+
+}
+
+void TypeAdapter::promoteTemp(var &value) {
+
 }
 
 // array adapter
@@ -777,6 +797,26 @@ string ArrayAdapter::toString(var &value) {
   value.stringValue = ss.str();
 
   return value.stringValue.c_str();
+
+}
+
+var& ArrayAdapter::subscript(var &value, var key) {
+
+  Array &arrayValue = *value.arrayValue;
+
+  return key < arrayValue.size() ? arrayValue[key] : setTemp(value, key);
+
+}
+
+void ArrayAdapter::promoteTemp(var &value) {
+
+  unsigned index = (var)getTempKey(value);
+  Array &a = *getParent(value).arrayValue;
+
+  a.resize(index + 1);
+  a[index] = value;
+  // TODO: remove temporary value
+  // parent->tempKeys.erase((string)(var)tempArrayKey);
 
 }
 
@@ -837,6 +877,21 @@ string ObjectAdapter::toString(var &value) {
   value.stringValue = ss.str();
 
   return value.stringValue.c_str();
+
+}
+
+var& ObjectAdapter::subscript(var &value, var key) {
+
+  Object &obj = (*value.objectValue);
+
+  return obj.count(key) ? obj[key] : setTemp(value, key);
+
+}
+
+void ObjectAdapter::promoteTemp(var &value) {
+
+  (*getParent(value).objectValue)[getTempKey(value)] = value;
+  // parent->tempKeys.erase(tempObjectKey);
 
 }
 
@@ -1412,9 +1467,9 @@ var parser::parse(string str) {
 
 }
 
-static inline var parse(string str) {
+static inline var parse(string json) {
 
-return parser::parse(str);
+return parser::parse(json);
 
 }
 
@@ -1425,7 +1480,9 @@ return value.toJSON();
 }
 
 ostream& operator<<(ostream &os, var value) {
-return os << (string) value;
+
+return os << (string)value;
+
 }
 
 }

@@ -24,6 +24,8 @@ class Null {
 
 static const Null null;
 
+static const Null undefined;
+
 typedef bool boolean;
 typedef long double number;
 typedef const char* cstring;
@@ -64,9 +66,9 @@ enum ValueType {
 #include "../src/compare.cpp"
 #include "../src/parser.cpp"
 
-static inline var parse(string str) {
+static inline var parse(string json) {
 
-  return parser::parse(str);
+  return parser::parse(json);
 
 }
 
@@ -77,7 +79,9 @@ static inline string stringify(var value) {
 }
 
 ostream& operator<<(ostream &os, var value) {
-  return os << (string) value;
+
+  return os << (string)value;
+
 }
 
 }

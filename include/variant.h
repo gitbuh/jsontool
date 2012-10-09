@@ -2,17 +2,13 @@ class var {
 
 protected:
 
-  Object tempKeys;
-
   var* parent;
 
-  bool isTempArrayMember;
+  string tempKey; // string or unsigned
 
-  bool isTempObjectMember;
+  Object tempKeys;
 
-  unsigned tempArrayKey;
-
-  string tempObjectKey;
+  bool isTemp;
 
   TypeAdapter* getAdapter(ValueType type) {
 
@@ -54,8 +50,8 @@ protected:
 
   void init() {
 
-    isTempArrayMember = false;
-    isTempObjectMember = false;
+    isTemp = false;
+    isTemp= false;
     adapter = getAdapter(TYPE_UNDEFINED);
 
   }
@@ -124,10 +120,10 @@ protected:
 
   }
 
-  template <typename T>
-  static pair<T, T> arrayToPair(T (&p)[2]) {
+  template<typename T>
+  static pair<T, T> arrayToPair(T(&p)[2]) {
 
-      return make_pair(p[0], p[1]);
+    return make_pair(p[0], p[1]);
   }
 
   TypeAdapter* adapter;
@@ -136,6 +132,7 @@ public:
 
   friend class compare;
   friend class parser;
+  friend class TypeAdapter;
 
   boolean booleanValue;
 
@@ -151,6 +148,10 @@ public:
 
   operator boolean() {
     return adapter->toBoolean(*this);
+  }
+
+  operator unsigned() {
+    return adapter->toNumber(*this);
   }
 
   operator number() {
@@ -169,19 +170,14 @@ public:
     return *arrayValue;
   }
 
-  // operators
-
   void checkTempMember() {
 
-    if (isTempArrayMember) {
-      isTempArrayMember = false;
-      parent->arrayValue->resize(tempArrayKey + 1);
-      (*parent->arrayValue)[tempArrayKey] = *this;
-      // parent->tempKeys.erase((string)(var)tempArrayKey);
-    } else if (isTempObjectMember) {
-      isTempObjectMember = false;
-      (*parent->objectValue)[tempObjectKey] = *this;
-      // parent->tempKeys.erase(tempObjectKey);
+    if (isTemp) {
+
+      isTemp = false;
+
+      parent->adapter->promoteTemp(*this);
+
     }
 
   }
@@ -201,6 +197,8 @@ public:
     arrayValue = source.arrayValue;
 
   }
+
+  // equality operators
 
   template<typename T>
   bool operator ==(T val) {
@@ -258,6 +256,8 @@ public:
 
   }
 
+  // assignment operators
+
   var operator =(var rhs) {
 
     copy(rhs);
@@ -288,37 +288,12 @@ public:
     return *this;
   }
 
-  var &operator [](const string key) {
+  // subscript notation
 
-    if (!objectValue->count(key)) {
+  template<typename T>
+  var &operator [](const T &key) {
 
-      tempKeys[key] = var();
-      tempKeys[key].isTempObjectMember = true;
-      tempKeys[key].parent = this;
-      tempKeys[key].tempObjectKey = key;
-
-      return tempKeys[key];
-
-    }
-
-    return (*objectValue)[key];
-  }
-
-  var &operator [](const int key) {
-
-    if ((unsigned) key >= arrayValue->size()) {
-
-      string k = (var) key;
-      tempKeys[k] = var();
-      tempKeys[k].isTempArrayMember = true;
-      tempKeys[k].parent = this;
-      tempKeys[k].tempArrayKey = key;
-
-      return tempKeys[k];
-
-    }
-
-    return (*arrayValue)[key];
+    return adapter->subscript(*this, key);
 
   }
 
@@ -327,14 +302,14 @@ public:
   var() {
 
     init();
-    reset();
+    setFromUndefined();
 
   }
 
   var(Null) {
 
     init();
-    reset();
+    setFromNull();
 
   }
 
@@ -452,12 +427,13 @@ public:
 
     init();
     map<string, var> result;
-    transform(value, value+N, inserter(result, result.begin()), arrayToPair<T>);
+    transform(value, value + N, inserter(result, result.begin()),
+        arrayToPair<T> );
     setFromObject(result);
 
   }
 
-  // type checks (for convenience)
+  // type checks
 
   inline bool isUndefined() {
 

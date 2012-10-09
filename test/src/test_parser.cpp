@@ -89,9 +89,16 @@ TEST_CASE("parser/error", "") {
 TEST_CASE("parser/object", "") {
 
   string test = "{\"foo\":\"abc\",\"goo\":\"xyz\"}";
-  string result = parse(test);
+  var result = parse(test);
 
-  CHECK(test == result);
+  CHECK(result["foo"] == "abc");
+  CHECK(result["goo"] == "xyz");
+
+
+  cout << result["foo"]["bar"] << endl;
+
+
+  CHECK(test == (string)result);
 
 }
 

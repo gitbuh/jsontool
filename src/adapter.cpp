@@ -13,6 +13,37 @@ string TypeAdapter::toString(var &value) {
 }
 
 string TypeAdapter::toJSON(var &value) {
-  return (string)value;
+  return (string) value;
 }
 
+var &TypeAdapter::subscript(var &, var) {
+  static var undefined;
+  return undefined;
+}
+
+string &TypeAdapter::getTempKey(var &value) {
+
+  return value.tempKey;
+
+}
+
+var &TypeAdapter::getParent(var &value) {
+
+  return *value.parent;
+
+}
+
+
+var &TypeAdapter::setTemp(var &value, string key) {
+
+  value.tempKeys[key] = var();
+  value.tempKeys[key].isTemp = true;
+  value.tempKeys[key].parent = (&value);
+  value.tempKeys[key].tempKey = key;
+  return value.tempKeys[key];
+
+}
+
+void TypeAdapter::promoteTemp(var &value) {
+
+}

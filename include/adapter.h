@@ -14,9 +14,15 @@ public:
 
   virtual string toJSON(var &);
 
-  TypeAdapter() :
-    type(TYPE_UNDEFINED) {
-  }
+  virtual var &subscript(var &, var);
+
+  virtual var &getParent(var &);
+
+  virtual string &getTempKey(var &);
+
+  virtual var &setTemp(var &, string);
+
+  virtual void promoteTemp(var &value);
 
 };
 
@@ -91,6 +97,8 @@ public:
   boolean toBoolean(var &);
   number toNumber(var &);
   string toString(var &);
+  var &subscript(var &, var);
+  virtual void promoteTemp(var &value);
 
   ObjectAdapter() :
     TypeAdapter() {
@@ -106,6 +114,8 @@ public:
   boolean toBoolean(var &);
   number toNumber(var &);
   string toString(var &);
+  var &subscript(var &, var);
+  virtual void promoteTemp(var &value);
 
   ArrayAdapter() :
     TypeAdapter() {

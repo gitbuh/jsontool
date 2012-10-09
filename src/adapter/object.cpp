@@ -36,3 +36,19 @@ string ObjectAdapter::toString(var &value) {
   return value.stringValue.c_str();
 
 }
+
+var& ObjectAdapter::subscript(var &value, var key) {
+
+  Object &obj = (*value.objectValue);
+
+  return obj.count(key) ? obj[key] : setTemp(value, key);
+
+}
+
+void ObjectAdapter::promoteTemp(var &value) {
+
+  (*getParent(value).objectValue)[getTempKey(value)] = value;
+  // TODO: remove temporary value
+  // parent->tempKeys.erase(tempObjectKey);
+
+}

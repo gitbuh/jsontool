@@ -34,3 +34,23 @@ string ArrayAdapter::toString(var &value) {
   return value.stringValue.c_str();
 
 }
+
+var& ArrayAdapter::subscript(var &value, var key) {
+
+  Array &arrayValue = *value.arrayValue;
+
+  return key < arrayValue.size() ? arrayValue[key] : setTemp(value, key);
+
+}
+
+void ArrayAdapter::promoteTemp(var &value) {
+
+  unsigned index = (var)getTempKey(value);
+  Array &a = *getParent(value).arrayValue;
+
+  a.resize(index + 1);
+  a[index] = value;
+  // TODO: remove temporary value
+  // parent->tempKeys.erase((string)(var)tempArrayKey);
+
+}
