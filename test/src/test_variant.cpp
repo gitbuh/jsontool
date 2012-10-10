@@ -153,6 +153,10 @@ TEST_CASE("variant/array/subscript", "Array subscript notation") {
 
   CHECK((string)v == "[1,null,3]");
 
+  CHECK((string)v[5] == "null");
+
+  CHECK((string)v == "[1,null,3]");
+
 }
 
 

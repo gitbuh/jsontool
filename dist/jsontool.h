@@ -74,7 +74,17 @@ public:
 
   virtual var &setTemp(var &, string);
 
-  virtual void promoteTemp(var &value);
+  virtual void promoteTemp(var &);
+
+  boolean &getBoolean(var &value);
+
+  number &getNumber(var &value);
+
+  string &getString(var &value);
+
+  Object &getObject(var &value);
+
+  Array &getArray(var &value);
 
 };
 
@@ -316,12 +326,6 @@ protected:
 
   TypeAdapter* adapter;
 
-public:
-
-  friend class compare;
-  friend class parser;
-  friend class TypeAdapter;
-
   boolean booleanValue;
 
   number numberValue;
@@ -331,6 +335,12 @@ public:
   shared_ptr<Object> objectValue;
 
   shared_ptr<Array> arrayValue;
+
+public:
+
+  friend class compare;
+  friend class parser;
+  friend class TypeAdapter;
 
   // cast operators
 
@@ -714,7 +724,47 @@ public:
 
 };
 
-// defaults (undefined and null)
+/**
+ * Type adapter
+ */
+
+// final
+
+boolean &TypeAdapter::getBoolean(var &value) {
+  return value.booleanValue;
+}
+
+number &TypeAdapter::getNumber(var &value) {
+  return value.numberValue;
+}
+
+string &TypeAdapter::getString(var &value) {
+  return value.stringValue;
+}
+
+Object &TypeAdapter::getObject(var &value) {
+  return *value.objectValue;
+}
+
+Array &TypeAdapter::getArray(var &value) {
+  return *value.arrayValue;
+}
+
+var &TypeAdapter::setTemp(var &value, string key) {
+
+  value.tempKeys[key] = var();
+  value.tempKeys[key].isTemp = true;
+  value.tempKeys[key].parent = (&value);
+  value.tempKeys[key].tempKey = key;
+  return value.tempKeys[key];
+
+}
+
+void TypeAdapter::promoteTemp(var &value) {
+
+}
+
+// virtual
 
 boolean TypeAdapter::toBoolean(var &value) {
   return value.booleanValue;
@@ -749,21 +799,6 @@ var &TypeAdapter::getParent(var &value) {
 
 }
 
-
-var &TypeAdapter::setTemp(var &value, string key) {
-
-  value.tempKeys[key] = var();
-  value.tempKeys[key].isTemp = true;
-  value.tempKeys[key].parent = (&value);
-  value.tempKeys[key].tempKey = key;
-  return value.tempKeys[key];
-
-}
-
-void TypeAdapter::promoteTemp(var &value) {
-
-}
-
 // array adapter
 
 number ArrayAdapter::toNumber(var &value) {
@@ -776,16 +811,18 @@ boolean ArrayAdapter::toBoolean(var &) {
 
 string ArrayAdapter::toString(var &value) {
 
+  Array &arrayValue = getArray(value);
+  string &stringValue = getString(value);
+
   ostringstream ss;
 
   ss << "[";
 
-  for (Array::iterator it = value.arrayValue->begin(); it
-      != value.arrayValue->end(); ++it) {
+  for (Array::iterator it = arrayValue.begin(); it != arrayValue.end(); ++it) {
 
     var& item = *it;
 
-    if (it != value.arrayValue->begin())
+    if (it != arrayValue.begin())
       ss << ",";
 
     ss << stringify(item);
@@ -794,15 +831,15 @@ string ArrayAdapter::toString(var &value) {
 
   ss << "]";
 
-  value.stringValue = ss.str();
+  stringValue = ss.str();
 
-  return value.stringValue.c_str();
+  return stringValue;
 
 }
 
 var& ArrayAdapter::subscript(var &value, var key) {
 
-  Array &arrayValue = *value.arrayValue;
+  Array &arrayValue = getArray(value);
 
   return key < arrayValue.size() ? arrayValue[key] : setTemp(value, key);
 
@@ -811,7 +848,7 @@ var& ArrayAdapter::subscript(var &value, var key) {
 void ArrayAdapter::promoteTemp(var &value) {
 
   unsigned index = (var)getTempKey(value);
-  Array &a = *getParent(value).arrayValue;
+  Array &a = getArray(getParent(value));
 
   a.resize(index + 1);
   a[index] = value;
@@ -823,23 +860,24 @@ void ArrayAdapter::promoteTemp(var &value) {
 // boolean adapter
 
 number BooleanAdapter::toNumber(var &value) {
-  return value.booleanValue == false ? 0 : 1;
+  return getBoolean(value) == false ? 0 : 1;
 }
 string BooleanAdapter::toString(var &value) {
-  return value.booleanValue == false ? "false" : "true";
+  return getBoolean(value) == false ? "false" : "true";
 }
 
 
 // number adapter
 
 boolean NumberAdapter::toBoolean(var &value) {
-  return value.numberValue == 0 ? false : true;
+  return getNumber(value) == 0 ? false : true;
 }
 
 string NumberAdapter::toString(var &value) {
+  string &stringValue = getString(value);
   ostringstream ss;
-  value.stringValue = ss << value.numberValue ? ss.str() : "NaN";
-  return value.stringValue.c_str();
+  stringValue = ss << getNumber(value) ? ss.str() : "NaN";
+  return stringValue;
 }
 
 // object adapter
@@ -854,16 +892,19 @@ boolean ObjectAdapter::toBoolean(var &) {
 
 string ObjectAdapter::toString(var &value) {
 
+  Object &objectValue = getObject(value);
+  string &stringValue = getString(value);
+
   ostringstream ss;
 
   ss << "{";
 
-  for (Object::iterator it = value.objectValue->begin(); it
-      != value.objectValue->end(); ++it) {
+  for (Object::iterator it = objectValue.begin(); it
+      != objectValue.end(); ++it) {
 
     var& item = it->second;
 
-    if (it != value.objectValue->begin())
+    if (it != objectValue.begin())
       ss << ",";
 
     ss << "\"" << it->first << "\":";
@@ -874,23 +915,23 @@ string ObjectAdapter::toString(var &value) {
 
   ss << "}";
 
-  value.stringValue = ss.str();
+  stringValue = ss.str();
 
-  return value.stringValue.c_str();
+  return stringValue;
 
 }
 
 var& ObjectAdapter::subscript(var &value, var key) {
 
-  Object &obj = (*value.objectValue);
+  Object &objectValue = getObject(value);
 
-  return obj.count(key) ? obj[key] : setTemp(value, key);
+  return objectValue.count(key) ? objectValue[key] : setTemp(value, key);
 
 }
 
 void ObjectAdapter::promoteTemp(var &value) {
 
-  (*getParent(value).objectValue)[getTempKey(value)] = value;
+  getObject(getParent(value))[getTempKey(value)] = value;
   // TODO: remove temporary value
   // parent->tempKeys.erase(tempObjectKey);
 
@@ -899,18 +940,18 @@ void ObjectAdapter::promoteTemp(var &value) {
 // string adapter
 
 boolean StringAdapter::toBoolean(var &value) {
-  return value.stringValue == "" ? false : true;
+  return getString(value) == "" ? false : true;
 }
 
 number StringAdapter::toNumber(var &value) {
   number n;
-  istringstream ss(value.stringValue);
+  istringstream ss(getString(value));
   return ss >> n ? n : 0;
 }
 
 string StringAdapter::toJSON(var &value) {
 
-  string str = (string)value;
+  string &str = getString(value);
 
   string::iterator it;
 

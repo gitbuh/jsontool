@@ -22,7 +22,17 @@ public:
 
   virtual var &setTemp(var &, string);
 
-  virtual void promoteTemp(var &value);
+  virtual void promoteTemp(var &);
+
+  boolean &getBoolean(var &value);
+
+  number &getNumber(var &value);
+
+  string &getString(var &value);
+
+  Object &getObject(var &value);
+
+  Array &getArray(var &value);
 
 };
 

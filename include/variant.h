@@ -128,12 +128,6 @@ protected:
 
   TypeAdapter* adapter;
 
-public:
-
-  friend class compare;
-  friend class parser;
-  friend class TypeAdapter;
-
   boolean booleanValue;
 
   number numberValue;
@@ -143,6 +137,12 @@ public:
   shared_ptr<Object> objectValue;
 
   shared_ptr<Array> arrayValue;
+
+public:
+
+  friend class compare;
+  friend class parser;
+  friend class TypeAdapter;
 
   // cast operators
 

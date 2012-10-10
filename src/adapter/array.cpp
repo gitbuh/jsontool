@@ -11,16 +11,18 @@ boolean ArrayAdapter::toBoolean(var &) {
 
 string ArrayAdapter::toString(var &value) {
 
+  Array &arrayValue = getArray(value);
+  string &stringValue = getString(value);
+
   ostringstream ss;
 
   ss << "[";
 
-  for (Array::iterator it = value.arrayValue->begin(); it
-      != value.arrayValue->end(); ++it) {
+  for (Array::iterator it = arrayValue.begin(); it != arrayValue.end(); ++it) {
 
     var& item = *it;
 
-    if (it != value.arrayValue->begin())
+    if (it != arrayValue.begin())
       ss << ",";
 
     ss << stringify(item);
@@ -29,15 +31,15 @@ string ArrayAdapter::toString(var &value) {
 
   ss << "]";
 
-  value.stringValue = ss.str();
+  stringValue = ss.str();
 
-  return value.stringValue.c_str();
+  return stringValue;
 
 }
 
 var& ArrayAdapter::subscript(var &value, var key) {
 
-  Array &arrayValue = *value.arrayValue;
+  Array &arrayValue = getArray(value);
 
   return key < arrayValue.size() ? arrayValue[key] : setTemp(value, key);
 
@@ -46,7 +48,7 @@ var& ArrayAdapter::subscript(var &value, var key) {
 void ArrayAdapter::promoteTemp(var &value) {
 
   unsigned index = (var)getTempKey(value);
-  Array &a = *getParent(value).arrayValue;
+  Array &a = getArray(getParent(value));
 
   a.resize(index + 1);
   a[index] = value;

@@ -2,18 +2,18 @@
 // string adapter
 
 boolean StringAdapter::toBoolean(var &value) {
-  return value.stringValue == "" ? false : true;
+  return getString(value) == "" ? false : true;
 }
 
 number StringAdapter::toNumber(var &value) {
   number n;
-  istringstream ss(value.stringValue);
+  istringstream ss(getString(value));
   return ss >> n ? n : 0;
 }
 
 string StringAdapter::toJSON(var &value) {
 
-  string str = (string)value;
+  string &str = getString(value);
 
   string::iterator it;
 

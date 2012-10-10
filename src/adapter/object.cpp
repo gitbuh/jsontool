@@ -11,16 +11,19 @@ boolean ObjectAdapter::toBoolean(var &) {
 
 string ObjectAdapter::toString(var &value) {
 
+  Object &objectValue = getObject(value);
+  string &stringValue = getString(value);
+
   ostringstream ss;
 
   ss << "{";
 
-  for (Object::iterator it = value.objectValue->begin(); it
-      != value.objectValue->end(); ++it) {
+  for (Object::iterator it = objectValue.begin(); it
+      != objectValue.end(); ++it) {
 
     var& item = it->second;
 
-    if (it != value.objectValue->begin())
+    if (it != objectValue.begin())
       ss << ",";
 
     ss << "\"" << it->first << "\":";
@@ -31,23 +34,23 @@ string ObjectAdapter::toString(var &value) {
 
   ss << "}";
 
-  value.stringValue = ss.str();
+  stringValue = ss.str();
 
-  return value.stringValue.c_str();
+  return stringValue;
 
 }
 
 var& ObjectAdapter::subscript(var &value, var key) {
 
-  Object &obj = (*value.objectValue);
+  Object &objectValue = getObject(value);
 
-  return obj.count(key) ? obj[key] : setTemp(value, key);
+  return objectValue.count(key) ? objectValue[key] : setTemp(value, key);
 
 }
 
 void ObjectAdapter::promoteTemp(var &value) {
 
-  (*getParent(value).objectValue)[getTempKey(value)] = value;
+  getObject(getParent(value))[getTempKey(value)] = value;
   // TODO: remove temporary value
   // parent->tempKeys.erase(tempObjectKey);
 

@@ -1,12 +1,12 @@
-
 // number adapter
 
 boolean NumberAdapter::toBoolean(var &value) {
-  return value.numberValue == 0 ? false : true;
+  return getNumber(value) == 0 ? false : true;
 }
 
 string NumberAdapter::toString(var &value) {
+  string &stringValue = getString(value);
   ostringstream ss;
-  value.stringValue = ss << value.numberValue ? ss.str() : "NaN";
-  return value.stringValue.c_str();
+  stringValue = ss << getNumber(value) ? ss.str() : "NaN";
+  return stringValue;
 }
