@@ -866,7 +866,6 @@ string BooleanAdapter::toString(var &value) {
   return getBoolean(value) == false ? "false" : "true";
 }
 
-
 // number adapter
 
 boolean NumberAdapter::toBoolean(var &value) {

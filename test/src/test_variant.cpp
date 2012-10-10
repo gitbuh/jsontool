@@ -159,5 +159,57 @@ TEST_CASE("variant/array/subscript", "Array subscript notation") {
 
 }
 
+TEST_CASE("variant/subscript/", "Subscripts pass by value and reference correctly") {
+
+  string s = "hi";
+  var v = Array();
+  var obj = Object();
+
+  obj["one"] = 123;
+
+  v[0] = s;
+  v[1] = obj;
+
+  CHECK(v[0] == "hi");
+  CHECK(v[1]["one"] == 123);
+
+  var v0 = v[0];
+  var v1 = v[1];
+
+  CHECK(v0 == "hi");
+  CHECK(v1["one"] == 123);
+
+  v0 = "bye";
+  v1["two"] = 456;
+
+  CHECK(v0 == "bye");
+  CHECK(v[0] == "hi");
+  CHECK(v[1]["two"] == 456);
+
+  var obj2 = obj;
+
+  CHECK(obj2["two"] == 456);
+
+  obj2["one"] = 789;
+
+  CHECK(v1["one"] == 789);
+  CHECK(v[1]["one"] == 789);
+
+}
+
+TEST_CASE("variant/circular/", "Circular reference") {
+
+  var a1 = Array();
+  var a2 = Array();
+
+  a1[0] = a2;
+  a1[1] = "one";
+  a2[0] = a1;
+
+  var foo = a1[0][0];
+
+  CHECK(foo[1] == "one");
+
+}
 
 }
