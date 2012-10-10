@@ -4,7 +4,7 @@ Single-header C++ JSON library.
 
 ## Overview
 
-jsontool exposes a simple API for producing and consuming JSON data:
+jsontool provides a simple API for producing and consuming JSON data:
 
 - `jsontool::var`: a variant class representing a piece of JSON data.
 - `jsontool::parse`: convert a JSON string to a `jsontool::var`.
