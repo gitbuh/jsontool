@@ -17,6 +17,12 @@ jsontool exposes a simple API for producing and consuming JSON data:
 Use the `parse` function to create a `var` object from a string. 
 Access its members using subscript notation (square brackets).
 
+    #include "jsontool.h"
+    // ...
+    std::string json = "[1, true, \"three\"]";  // some test data
+    jsontool::var data = jsontool::parse(json); // parse it
+    cout << data[2] << endl;                    // output: three
+
 Assignment, cast and comparison operators behave as closely as possible to 
 ECMA-262 standard, 5th edition. For example, objects and arrays are copied 
 by reference, while primitives are copied by value. The `==` operator uses 
