@@ -54,7 +54,8 @@ Internally, jsontool stores array data as `vector<var>` and object data as
     }
 
 
-`jsontool::Array` and `jsontool::Object`
+`jsontool::Array` and `jsontool::Object` can be used as aliases for 
+`vector<var>` and `map<string, var>`, respectively.
 
 ### Producing JSON data
 
