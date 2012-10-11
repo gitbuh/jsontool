@@ -24,12 +24,12 @@ Access its members using subscript notation (square brackets).
     cout << data[2] << endl;                    // output: three
 
 Assignment, cast and comparison operators behave as closely as possible to 
-ECMA-262 standard, 5th edition. For example, objects and arrays are copied 
+standard ECMA-262, edition 5. For example, objects and arrays are copied 
 by reference, while primitives are copied by value. The `==` operator uses 
 the abstract comparison algorithm, so `0` is equal to `false`, `1` is equal 
 to `true`, `33` is equal to `"33"`, and so on.
 
-`jsontool::var` exposes the following methods to check the internal data type:
+The `var` class exposes the following methods to check the internal data type:
 
     inline bool isUndefined();
     inline bool isNull();
@@ -39,16 +39,27 @@ to `true`, `33` is equal to `"33"`, and so on.
     inline bool isObject();
     inline bool isArray();
 
-Internally, jsontool stores JSON arrays as `std::vector<jsontool::var>` 
-and JSON objects as `std::map<std::string, jsontool::var>`, 
-and variants will convert automatically to these types for member
-iteration and advanced manipulation.
+Internally, jsontool stores array data as `vector<var>` and object data as 
+`map<string, var>`, and variants will cast to these types for member iteration.
 
-TODO: write example
+    using namespace std;
+    using namespace jsontool;
+    
+    string json = "{ \"x\": 32.1, \"y\": 78.9 }";   // some test data
+    map<string, var> data = parse(json);            // parse it
+    map<string, var>::iterator i;                   // map iterator
+    for (i = data.begin(); i != data.end(); ++i) {  // iterate
+        cout << i->first << endl;                   // output: x, y
+        cout << i->second << endl;                  // output: 32.1, 78.9
+    }
+
+
+`jsontool::Array` and `jsontool::Object`
 
 ### Producing JSON data
 
-Use the `parse` function to produce a `var` object from a string. 
+Use the `stringify` function to convert a `var` object to a JSON string. 
 
 TODO: write docs
+
 TODO: write example
