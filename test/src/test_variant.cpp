@@ -210,6 +210,10 @@ TEST_CASE("variant/circular/", "Circular reference") {
 
   CHECK(foo[1] == "one");
 
+
+  a1[0] = null; // TODO: tear down in dtor to avoid leaks
 }
+
+
 
 }

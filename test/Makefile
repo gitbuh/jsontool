@@ -14,7 +14,7 @@ CATCHURL = https://raw.github.com/philsquared/Catch/master/single_include/catch.
 all : test
 
 test : catch.hpp unittests
-	valgrind ./unittests	
+	valgrind --leak-check=full ./unittests	
 
 catch.hpp :
 	wget $(CATCHURL)

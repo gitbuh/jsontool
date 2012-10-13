@@ -54,12 +54,38 @@ Internally, jsontool stores array data as `vector<var>` and object data as
     }
 
 
-`jsontool::Array` and `jsontool::Object`
+`jsontool::Array` and `jsontool::Object` can be used as aliases for 
+`vector<var>` and `map<string, var>`, respectively.
 
 ### Producing JSON data
 
 Use the `stringify` function to convert a `var` object to a JSON string. 
 
-TODO: write docs
+    using namespace std;
+    using namespace jsontool;
+    
+    Object result;
+    string tags[] = { "good", "bad", "ugly" };
 
-TODO: write example
+    result["id"] = 32;
+    result["name"] = "Bob";
+    result["tags"] = tags;
+    
+    cout << stringify(result) << endl;
+    // output: {"id":32,"name":"Bob","tags":["good","bad","ugly"]}
+
+Most data types will convert to vars, including two dimensional arrays, which are interpreted as objects. The example above can be rewritten as:
+
+    using namespace std;
+    using namespace jsontool;
+    
+    string tags[] = { "good", "bad", "ugly" };
+    
+    var result[][2] = { 
+        { "id", 32 }, 
+        { "name", "Bob" }, 
+        { "tags", tags } 
+    };
+    
+    cout << stringify(result) << endl;
+    // output: {"id":32,"name":"Bob","tags":["good","bad","ugly"]}

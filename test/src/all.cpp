@@ -11,3 +11,4 @@
 #include "test_compare.cpp"
 #include "test_parser.cpp"
 #include "test_variant.cpp"
+#include "test_example.cpp"
