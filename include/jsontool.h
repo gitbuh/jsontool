@@ -12,6 +12,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdarg>
+#include <memory>
 
 namespace jsontool {
 

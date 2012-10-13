@@ -6,8 +6,8 @@ protected:
 
   void setup(const int aPosition, const string& aMessage) {
 
-    stringstream ss("Parse error at position ");
-    ss << aPosition << ": " << aMessage;
+    stringstream ss;
+    ss << "Parse error at position " << aPosition << ": " << aMessage;
     message = ss.str();
 
   }

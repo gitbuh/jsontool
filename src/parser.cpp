@@ -21,9 +21,6 @@ var parser::parse(string str) {
   stringstream valBuffer("");
   int index = -1;
 
-  bool hasComma = false;
-  bool hasColon = false;
-  bool hasQuote = false;
   bool hasEscape = false;
   bool isKey = false;
   bool expectColon = false;
@@ -234,13 +231,6 @@ var parser::parse(string str) {
 
       stringstream &buffer = isKey ? keyBuffer : valBuffer;
 
-      if (character == '\\') {
-
-        hasEscape = true;
-        continue;
-
-      }
-
       if (hasEscape) {
 
         hasEscape = false;
@@ -273,14 +263,22 @@ var parser::parse(string str) {
 
         }
 
-        stringstream ss("Bad escape sequence: \\");
-        ss << character;
+        stringstream ss;
+        ss << "Bad escape sequence: \\" << character;
         throw ParseError(index, ss.str());
 
         // buffer << character;
         // continue;
 
       }
+
+      if (character == '\\') {
+
+        hasEscape = true;
+        continue;
+
+      }
+
 
       if (character == '"') {
 
