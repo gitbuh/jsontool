@@ -12,7 +12,16 @@ jsontool provides a simple API for producing and consuming JSON data:
 
 ## Usage
 
+- [Consuming JSON data](#consuming-json-data)
+  - [Parsing JSON](#parsing-json)
+  - [Operators](#operators)
+  - [Type checking](#type-checking)
+  - [Iteration](#iteration)
+- [Producing JSON data](#producing-json-data)
+
 ### Consuming JSON data
+
+#### Parsing JSON
 
 Use the `parse` function to create a `var` object from a string. 
 Access its members using subscript notation (square brackets).
@@ -23,11 +32,15 @@ Access its members using subscript notation (square brackets).
     jsontool::var data = jsontool::parse(json); // parse it
     cout << data[2] << endl;                    // output: three
 
+#### Operators
+
 Assignment, cast and comparison operators behave as closely as possible to 
 standard ECMA-262, edition 5. For example, objects and arrays are copied 
 by reference, while primitives are copied by value. The `==` operator uses 
 the abstract comparison algorithm, so `0` is equal to `false`, `1` is equal 
 to `true`, `33` is equal to `"33"`, and so on.
+
+#### Type checking
 
 The `var` class exposes the following methods to check the internal data type:
 
@@ -38,6 +51,8 @@ The `var` class exposes the following methods to check the internal data type:
     inline bool isString();
     inline bool isObject();
     inline bool isArray();
+
+#### Iteration
 
 Internally, jsontool stores array data as `vector<var>` and object data as 
 `map<string, var>`, and variants will cast to these types for member iteration.
