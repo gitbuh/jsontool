@@ -76,11 +76,23 @@ TEST_CASE("parser/array5", "") {
 
 TEST_CASE("parser/error", "") {
 
-  string test = "[123.456,noun]";
+  string test = "[123.456, noun, \"banana\"]";
+
+  jsontool::parser.repair = true;
+
+  CHECK(parse(test) == "[123.456,\"banana\"]");
+
+  jsontool::parser.repair = false;
 
   CHECK_THROWS_AS(parse(test), ParseError);
 
-  test = "[123.456,argh]";
+  test = "{\"bar\":argh,\"foo\":123}";
+
+  jsontool::parser.repair = true;
+
+  CHECK(parse(test) == "{\"foo\":123}");
+
+  jsontool::parser.repair = false;
 
   CHECK_THROWS_AS(parse(test), ParseError);
 

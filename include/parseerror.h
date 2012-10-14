@@ -4,26 +4,22 @@ protected:
 
   string message;
 
-  void setup(const int aPosition, const string& aMessage) {
+  void setup(const int aLine, const int aPosition, const string& aMessage) {
 
     stringstream ss;
-    ss << "Parse error at position " << aPosition << ": " << aMessage;
+    ss << "Parse error at line " << aLine << ", position " << aPosition << ": " << aMessage;
     message = ss.str();
 
   }
 
 public:
 
-  const int position;
-
-  explicit ParseError(const int aPosition, const string& aMessage) :
-    position(aPosition) {
-    setup(aPosition, aMessage);
+  explicit ParseError(const int aLine, const int aPosition, const string& aMessage) {
+    setup(aLine, aPosition, aMessage);
   }
 
-  explicit ParseError(const string& aMessage) :
-    position(0) {
-    setup(0, aMessage);
+  explicit ParseError(const string& aMessage) {
+    setup(0, 0, aMessage);
   }
 
   virtual ~ParseError() throw () {

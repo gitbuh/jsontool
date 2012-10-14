@@ -141,7 +141,7 @@ protected:
 public:
 
   friend class compare;
-  friend class parser;
+  friend class Parser;
   friend class TypeAdapter;
 
   // cast operators

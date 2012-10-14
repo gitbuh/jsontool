@@ -340,7 +340,7 @@ protected:
 public:
 
   friend class compare;
-  friend class parser;
+  friend class Parser;
   friend class TypeAdapter;
 
   // cast operators
@@ -681,26 +681,22 @@ protected:
 
   string message;
 
-  void setup(const int aPosition, const string& aMessage) {
+  void setup(const int aLine, const int aPosition, const string& aMessage) {
 
     stringstream ss;
-    ss << "Parse error at position " << aPosition << ": " << aMessage;
+    ss << "Parse error at line " << aLine << ", position " << aPosition << ": " << aMessage;
     message = ss.str();
 
   }
 
 public:
 
-  const int position;
-
-  explicit ParseError(const int aPosition, const string& aMessage) :
-    position(aPosition) {
-    setup(aPosition, aMessage);
+  explicit ParseError(const int aLine, const int aPosition, const string& aMessage) {
+    setup(aLine, aPosition, aMessage);
   }
 
-  explicit ParseError(const string& aMessage) :
-    position(0) {
-    setup(0, aMessage);
+  explicit ParseError(const string& aMessage) {
+    setup(0, 0, aMessage);
   }
 
   virtual ~ParseError() throw () {
@@ -711,7 +707,62 @@ public:
   }
 
 };
-class parser {
+class Parser {
+
+public:
+
+  /**
+   * Try to repair broken JSON
+   */
+  bool repair;
+
+  /**
+   * Report all errors
+   */
+  bool report;
+
+
+
+  Parser(bool aRepair, bool aReport) {
+    repair = aRepair;
+    report = aReport;
+    hasError = false;
+  }
+
+  Parser()  {
+    repair = false;
+    report = false;
+    hasError = false;
+  }
+
+protected:
+
+  bool hasError;
+
+  void warn(ParseError error, bool repaired) {
+
+    if (repaired) {
+
+      cerr << error.what() << " (repaired)" << endl;
+      return;
+
+    }
+    if (report) {
+
+      hasError = true;
+      cerr << error.what() << endl;
+      return;
+
+    }
+
+    throw error;
+
+  }
+  void warn(ParseError error) {
+
+    warn(error, false);
+
+  }
 
 public:
 
@@ -719,9 +770,10 @@ public:
     STATE_WHITESPACE, STATE_NUMBER, STATE_STRING
   };
 
-  static void append(var &context, string key, var value);
 
-  static var parse(string str);
+  void append(var &context, string key, var value);
+
+  var parse(string str);
 
 };
 
@@ -1189,7 +1241,7 @@ bool compare::relation(var& x, var& y) {
   }
 }
 
-void parser::append(var &context, string key, var value) {
+void Parser::append(var &context, string key, var value) {
 
   if (context.isObject()) {
     context[key] = value;
@@ -1202,7 +1254,7 @@ void parser::append(var &context, string key, var value) {
 
 }
 
-var parser::parse(string str) {
+var Parser::parse(string str) {
 
   string::iterator it;
   char character;
@@ -1210,6 +1262,8 @@ var parser::parse(string str) {
   stringstream keyBuffer("");
   stringstream valBuffer("");
   int index = -1;
+  int linePosition = -1;
+  int line = 1;
 
   bool hasEscape = false;
   bool isKey = false;
@@ -1222,6 +1276,7 @@ var parser::parse(string str) {
   for (it = str.begin(); it < str.end(); it++) {
 
     ++index;
+    ++linePosition;
 
     character = *it;
 
@@ -1230,6 +1285,15 @@ var parser::parse(string str) {
     case STATE_WHITESPACE:
 
       // whitespace
+
+      if (character == '\n') {
+
+        ++line;
+        linePosition = -1;
+
+        continue;
+
+      }
 
       if (isspace(character)) {
 
@@ -1256,6 +1320,7 @@ var parser::parse(string str) {
 
         it += 3;
         index += 3;
+        linePosition += 3;
 
         continue;
 
@@ -1269,6 +1334,7 @@ var parser::parse(string str) {
 
         it += 3;
         index += 3;
+        linePosition += 3;
 
         continue;
 
@@ -1280,6 +1346,7 @@ var parser::parse(string str) {
 
         it += 4;
         index += 4;
+        linePosition += 4;
 
         continue;
 
@@ -1365,14 +1432,15 @@ var parser::parse(string str) {
 
         }
 
-        throw ParseError(index, "Found unexpected colon");
+        warn(ParseError(line, linePosition, "Found unexpected colon"), repair);
 
         continue;
 
       }
 
-      throw ParseError(index,
-          "Found unexpected character(s): " + str.substr(index, 8));
+      keyBuffer.str("");
+      warn(ParseError(line, linePosition,
+          "Found unexpected character: " + str.substr(index, 1)), repair);
 
       continue;
 
@@ -1411,9 +1479,8 @@ var parser::parse(string str) {
 
       } else {
 
-        stringstream ss("Expected number, found ");
-        ss << str.substr(index, 1);
-        throw ParseError(index, ss.str());
+        warn(ParseError(line, linePosition,
+            "Expected number, found " + str.substr(index, 1)), repair);
 
       }
 
@@ -1454,8 +1521,16 @@ var parser::parse(string str) {
         }
 
         stringstream ss;
-        ss << "Bad escape sequence: \\" << character;
-        throw ParseError(index, ss.str());
+        ss << "Bad escape sequence: backslash " << character;
+        ParseError err = ParseError(line, linePosition, ss.str());
+
+        if (repair) {
+
+          buffer << "\\" << character;
+
+        }
+
+        warn(err, repair);
 
         // buffer << character;
         // continue;
@@ -1468,6 +1543,8 @@ var parser::parse(string str) {
         continue;
 
       }
+
+      //TODO: disallow some characters, or only allow certain character
 
 
       if (character == '"') {
@@ -1503,13 +1580,22 @@ var parser::parse(string str) {
     append(context, keyBuffer.str(), strtod(valBuffer.str().c_str(), 0));
   }
 
+  if (hasError) {
+
+    hasError = false;
+    throw(ParseError("Multiple errors."));
+
+  }
+
   return context[0];
 
 }
 
+static Parser parser;
+
 static inline var parse(string json) {
 
-return parser::parse(json);
+return parser.parse(json);
 
 }
 

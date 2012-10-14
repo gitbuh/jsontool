@@ -67,9 +67,11 @@ enum ValueType {
 #include "../src/compare.cpp"
 #include "../src/parser.cpp"
 
+static Parser parser;
+
 static inline var parse(string json) {
 
-  return parser::parse(json);
+  return parser.parse(json);
 
 }
 
