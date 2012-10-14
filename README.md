@@ -1,6 +1,6 @@
 # jsontool
 
-Single-header C++ JSON library.
+Header-only C++ JSON library.
 
 ## Overview
 
